@@ -2,6 +2,10 @@ import openai
 import backoff
 import os
 import tiktoken
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
 @backoff.on_exception(backoff.expo, openai.error.RateLimitError)
 @backoff.on_exception(backoff.expo, openai.error.APIConnectionError)
 def completions_with_backoff(**kwargs):
@@ -25,7 +29,7 @@ def embeddings_with_backoff(**kwargs):
     return openai.Embedding.create(**kwargs)
 
 openai.api_base = "https://pptc2.openai.azure.com/"
-openai.api_key = ""
+openai.api_key = os.getenv("OPENAI_KEY")
 
 def query_azure_openai(query, model = "vicuna-13b-v1.5-16k",id=None):
 
