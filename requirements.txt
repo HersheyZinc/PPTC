@@ -1,4 +1,4 @@
-openai
+openai == 0.27.6
 backoff
 pandas
 python-pptx == 0.6.21

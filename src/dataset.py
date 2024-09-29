@@ -13,7 +13,7 @@ def load_data(path, dataset, args):
     instructions = []
     labels = []
 
-    with open(instruction_path, 'r') as f:
+    with open(instruction_path, 'r', encoding="utf8") as f:
         lines = f.read()
         dialogues = lines.strip().split('\n\n')
         for dialogue in dialogues:
@@ -21,7 +21,7 @@ def load_data(path, dataset, args):
             ins = [x.strip() for x in ins if x!='']
             instructions.append(ins)
         
-    with open(label_path, 'r') as f:
+    with open(label_path, 'r', encoding="utf8") as f:
         lines = f.read()
         dialogue_labels = lines.strip().split('\n\n')
         for dialogue_label in dialogue_labels:

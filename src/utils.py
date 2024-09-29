@@ -16,14 +16,14 @@ def read_list(filename):
     return lst
 
 def write_lines(lst, path):
-    with open(path, 'w') as file:
+    with open(path, 'w', encoding="utf-8") as file:
         for s in lst:
             file.write(s)
             file.write('\n')
 
 def read_lines(path):
     data = []
-    with open(path, 'r') as file:
+    with open(path, 'r', encoding="utf-8") as file:
         for line in file:
             data.append(line.strip())
     
@@ -209,7 +209,7 @@ def get_tokens(text):
 def calc_api_cost(path):
     all_apis = api_doc.get_all_APIs()
     api_names = [x.name for x in all_apis]
-    line = open(path, "r").read()
+    line = open(path, "r", encoding="utf-8").read()
     lines = line.split('\n')
     cnt = 0
     for l in lines:
@@ -277,7 +277,7 @@ def sorted_list(path):
 
 def parse_train_json(path):
     turns = []
-    with open(path, 'r') as file:
+    with open(path, 'r', encoding="utf-8") as file:
         for line in file:
             data = json.loads(line)
             turn_id, instruction, label_api, base_ppt_path, label_ppt_path, api_lack_base_ppt_path, api_lack_label_ppt_path = data['Turn'],data['User instruction'],data['Feasible API sequence'],data['Base File'],data['Label File'],data['API Lack Base File'],data['API Lack Label File']
