@@ -25,7 +25,7 @@ def embeddings_with_backoff(**kwargs):
     return openai.Embedding.create(**kwargs)
 
 openai.api_base = "https://pptc2.openai.azure.com/"
-openai.api_key = "fdb5a76517a7403aaa16036160566feb"
+openai.api_key = ""
 
 def query_azure_openai(query, model = "vicuna-13b-v1.5-16k",id=None):
 

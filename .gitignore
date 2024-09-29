@@ -5,3 +5,4 @@ PPT_Prompt_File
 PPT_test_input
 PPT_test_output
 *.pyc
+src/openai_api.py
