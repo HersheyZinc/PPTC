@@ -1,5 +1,7 @@
 
-from src import ppt_executor, ppt_reader, openai_api, prompt_factor, dataset, api_selection, utils, api_doc
+from src import ppt_executor, ppt_reader, openai_api, prompt_factor, dataset, api_selection, utils
+from src import api_doc2 as api_doc
+import json
 
 class PPT_assistant(object):
     def __init__(self, args=None):
@@ -42,9 +44,9 @@ class PPT_assistant(object):
         self.prompt += prompt + '\n\n'
         return content
 
-    def api_executor(self, apis, test=False):
+    def api_executor(self, api_lines, test=False):
         print('Executing APIs...')
-        error_info = ppt_executor.API_executor(apis,test=test,args=self.args)
+        error_info = ppt_executor.API_executor(api_lines,test=test,args=self.args)
         if error_info!="":
             print(error_info)
         self.ppt = ppt_executor.get_ppt()
@@ -60,7 +62,7 @@ class PPT_assistant(object):
             label_str = ";\n".join(label)
             history += [
                 f"¬User¬\n{instruction}",
-                f"¬AI¬:\n<code>\n{label_str};\n</code>",
+                f"¬AI¬:\n{label_str};",
             ]
         self.chat_history = history
         return history
@@ -87,70 +89,74 @@ class PPT_assistant(object):
                 print('Executing instruction: ', instruction)
 
             selected_apis = self.api_selector(instruction)
-            API_string = "\n".join(map(str, selected_apis))
-            if verbose:
-                print(f"== Selected APIs ==\n{API_string}\n\n")
+            toolkit = api_doc.get_API_toolkit(selected_apis)
+
 
             PPT_content = self.content_selector(ppt_path, instruction, self.args, self.ppt)
-            if verbose:
-                print(PPT_content)
             
             prompt = prompt_factor.get_instruction_to_API_code_prompt2(
-                API_string,
                 PPT_content,
                 self.chat_history,
                 instruction,
-                True,
-                self.current_page_id,
+                current_page=self.current_page_id,
             )
 
-            exceeded = utils.check_token(self.model, prompt)
-            if exceeded != 0:
-                print(f'Exceeded:{exceeded}')
-                truncated_PPT_content = utils.get_token(PPT_content,exceeded,self.model)
-                prompt = prompt_factor.get_instruction_to_API_code_prompt2(
-                    API_string,
-                    truncated_PPT_content,
-                    self.chat_history,
-                    instruction,
-                    True,
-                    self.current_page_id,
-                )
-
-                exceeded = utils.check_token(self.model, prompt)
-                if exceeded != 0:
-                    print(f'Exceeded:{exceeded}')
-                    truncated_API_string = utils.get_token(API_string,exceeded,self.model)
-                    prompt = prompt_factor.get_instruction_to_API_code_prompt2(
-                        truncated_API_string,
-                        truncated_PPT_content,
-                        self.chat_history,
-                        instruction,
-                        True,
-                        self.current_page_id,
-                    )
             self.prompt += prompt + '\n\n'
             if verbose:
                 print(f"== Prompt ==\n{prompt}\n\n")
 
             try:
+                # reply = ""
+                # reply = openai_api.query_azure_openai(prompt, model="ft:gpt-4o-mini-2024-07-18:personal:edi2:AxTglBO3",id=self.model_id).strip()
+                messages = [{"role":"system","content":prompt}]
+                tool_calls = openai_api.query_openai(messages, model="gpt-4o-mini", toolkit=toolkit)
 
-                reply = openai_api.query_azure_openai(prompt, model=self.model,id=self.model_id).strip()
+                # print('#### Reply:')
+                # print(reply)
+                # print('#### Parsed:')
+                # print(utils.parse_api(reply))
+            except Exception as e:
+                print("Query Failed!", e)
+                tool_calls = []
 
-                print('#### Reply:')
-                print(reply)
-                print('#### Parsed:')
-                print(utils.parse_api(reply))
-            except:
-                print("Query Failed!")
-                reply = "Query Failed!"
             if verbose:
-                print(f"== Reply from AI ==\n{reply}\n\n")
+                print(f"== Reply from AI ==\n{tool_calls}\n\n")
 
             self.chat_history += [
                 f"¬User¬\n{instruction}",
-                f"¬AI¬:\n{reply}",
+                # f"¬AI¬:\n{reply}",
             ]
-            reply_list.append(reply)
+            reply_list.extend(tool_calls)
 
-        return self.prompt, "\n".join(reply_list)
+        return self.prompt, reply_list
+
+
+    def chat2(self, user_instruction, ppt_path=None, verbose=False):
+        self.prompt = ""
+
+        plan_prompt = user_instruction
+        plan_toolkit = api_doc.plan_APIs
+        plan_tool_calls = openai_api.query_openai(plan_prompt, )
+
+        for plan_tool_call in plan_tool_calls:
+
+            fn_name = plan_tool_call.function.name
+            fn_args = json.loads(plan_tool_call.function.arguments)
+
+            if fn_name == "new_slide":
+                self.api_executor(["create_slide()"], test=True, args=self.args)
+                slide_idx = ppt_executor.get_current_page_id()
+
+            elif fn_name == "modify_slide":
+                slide_idx = fn_args["idx"]
+                self.api_executor([f"move_to_slide({slide_idx})"], test=True, args=self.args)
+
+            
+
+            edit_prompt = fn_args["instructions"]
+            edit_tool_calls = openai_api.query_openai(edit_prompt)
+
+            api_lines = utils.parse_api2(edit_tool_calls)
+            self.api_executor(api_lines, test=True, args=self.args)
+
+        reply_list = []

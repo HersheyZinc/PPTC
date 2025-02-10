@@ -10,7 +10,7 @@ from pptx.enum.text import PP_PARAGRAPH_ALIGNMENT
 from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
 from pptx.enum.text import MSO_AUTO_SIZE
 from pptx.enum.text import PP_ALIGN
-from src import api_doc
+from src import api_doc, utils
 from src import ppt_reader
 
 SLIDE_HEIGHT = 6858000
@@ -126,9 +126,10 @@ def set_text_info(shape):
         print(e)
 
 # apis
-def API_executor(lines, test=False,args=None):
+def API_executor(api_lines, test=False,args=None):
+    
     error_info = ""
-    for line in lines:
+    for line in api_lines:
         if not test:
             if check_api_in_list(line, ["set_left","set_top","set_right","set_bottom"]):
                 continue
@@ -156,6 +157,7 @@ def API_executor(lines, test=False,args=None):
                 eval(line) 
         except Exception as e:
             print(f"ERROR: {line}")
+            print(e)
             error_info += f"ERROR: {line}\n"
     return error_info
     

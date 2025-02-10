@@ -310,46 +310,41 @@ Instruction: {0}
 # make_parallel_prompt = """"""
 # make_noisy_prompt = """
 
-instruction_following_prompt2 = """You are an AI assistant to help user to operate PowerPoint and editing the contents.
-Given you the user instruction:'{0}', you can complete it based on the following APIs and PPT file content.
-Currently you are at page {1}.
-Please finish user instruction with the functions you have.
-Don't generate instructions beyond what the user has instructed. 
-Don't guess what the user may instruct in the next step and generate API for them.
-Don't use python loop to call API. You can only call API once in one line.
-If the user does not specify the page to be modified, you can directly start using the APIs without having to navigate to other pages.
+instruction_following_prompt2 = """As an advanced AI assistant for PowerPoint, your role is to interpret and execute user instructions using the available functions.
+You have access to a comprehensive description of the current PowerPoint presentation and a suite of functions to modify it.
+Your objective is to accurately carry out the user instructions by selecting and applying the appropriate functions, ensuring each step is clear and precise.
+Only adjust object positions when explicitly instructed by the user.
+Do not anticipate future user instructions.
+Concentrate modifications on the current slide unless the user specifies otherwise.
+Always start by selecting an object with the appropriate choose() function.
 
-You need to generate code which can finish user instruction. The multiple lines of code should be surrounded by <code> and </code> such as:
-<code>
-API();
-API();
-</code>
 
-For example, if the user instruction is "create a slide", then the answer should be:
-<code>
-create_slide();
-</code>
+<Example>
+User Instruction: 'Change the title of the slide to "cheese" and insert a picture of "cows".'
+1. choose_title()  # Select the title area of the current slide
+2. insert_text('cheese')  # Insert the text "cheese" into the selected title area
+3. insert_picture('cow')  # Insert a picture of "cows" into the selected content area
 
-Now, you have access to a list of PowerPoint APIs with the following functions: 
+<Begin of PowerPoint>
 {2}
+<End of PowerPoint>
 
-All the PPT contents are:
-<Begin of PPT>
+Conversation History:
 {3}
-<End of PPT>"""
-
-chat_prompt = """The user and the you take turns making statements. Human statements start with ¬Human¬ and AI assistant statements start with ¬AI¬. Complete the transcript in exactly that format, without commentary.
 ¬User¬
-Hello!
-¬AI¬
-Hi there! How can I help you?
+I am currently on slide {1}.
 {0}
-¬User¬
-{1}
-¬AI¬
 """
 
-def get_instruction_to_API_code_prompt2(selected_API, ppt_content, chat_history, instruction, ask_less_question=False, current_page=1):
-    instruction_line = instruction + ". Surrounding your answer with <code> and </code>." if instruction == "" or instruction[-1]!='.' else instruction + " Surrounding your answer with <code> and </code>."
-    prompt = instruction_following_prompt2.format(instruction,current_page,selected_API,ppt_content) + "\n\n" + chat_prompt.format("\n".join(chat_history), instruction_line)
+plan_prompt = """You are an expert in PowerPoint presentations. 
+
+"""
+
+def get_instruction_to_API_code_prompt2(ppt_content, chat_history, instruction, ask_less_question=False, current_page=1):
+    instruction_line = instruction
+    prompt = instruction_following_prompt2.format(instruction,current_page,ppt_content, "\n".join(chat_history))
+    return prompt
+
+def get_planning_prompt(ppt_content, chat_history, user_instruction):
+    prompt = plan_prompt.format(ppt_content, chat_history, user_instruction)
     return prompt
