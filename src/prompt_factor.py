@@ -318,7 +318,6 @@ Don't generate instructions beyond what the user has instructed.
 Don't guess what the user may instruct in the next step and generate API for them.
 Don't use python loop to call API. You can only call API once in one line.
 If the user does not specify the page to be modified, you can directly start using the APIs without having to navigate to other pages.
-You must always call a choose() or insert() function first.
 
 You need to generate code which can finish user instruction. The multiple lines of code should be surrounded by <code> and </code> such as:
 <code>
@@ -339,6 +338,36 @@ All the PPT contents are:
 {3}
 <End of PPT>"""
 
+
+instruction_following_prompt3 = """You are an AI assistant designed to help users operate and edit PowerPoint presentations.
+You have been given the following user instruction: '{0}'. Your task is to complete this instruction using the provided APIs and PowerPoint content.
+You are currently on page {1}.
+
+Please adhere strictly to the user's instruction. Do not generate additional instructions or anticipate future user requests. 
+Avoid using Python loops; each API call should be on a separate line. Always call the appropriate choose() or insert() function before modifying any slide elements.
+
+If the user does not specify a page, you can begin using the APIs directly without navigating to other pages.
+
+Generate the necessary code to fulfill the user's instruction. Enclose the code in <code> and </code> tags, like this:
+<code>
+API();
+API();
+</code>
+
+For instance, if the user instruction is "Change the title to Cheese", your response should be:
+<code>
+choose_title();
+insert_text('Cheese');
+</code>
+
+You have access to the following PowerPoint APIs: 
+{2}
+
+Here is the current content of the PowerPoint presentation:
+<Begin of PPT>
+{3}
+<End of PPT>"""
+
 chat_prompt = """The user and the you take turns making statements. Human statements start with ¬Human¬ and AI assistant statements start with ¬AI¬. Complete the transcript in exactly that format, without commentary.
 ¬User¬
 Hello!
@@ -348,6 +377,37 @@ Hi there! How can I help you?
 ¬User¬
 {1}
 ¬AI¬
+"""
+
+plan_prompt = """You are an AI assistant designed to help users operate and edit PowerPoint presentations.
+You have been given the following user instruction: '{0}'. Your task is to complete this instruction using the provided APIs and PowerPoint content.
+The user is currently looking at slide {1}.
+
+Please adhere strictly to the user's instruction. Do not generate additional instructions or anticipate future user requests. 
+Avoid using Python loops; each API call should be on a separate line. Always call the appropriate choose() or insert() function before modifying any slide elements.
+
+Generate the necessary code to fulfill the user's instruction. Enclose the code in <code> and </code> tags, like this:
+<code>
+API();
+API();
+</code>
+
+For instance, if the user instruction is "Change the title to Cheese", your response should be:
+<code>
+modify_slide(slide_id=0, instructions='Change the title to \"Cheese\"');
+</code>
+
+You have access to the following PowerPoint APIs: 
+{2}
+
+Here is the current content of the PowerPoint presentation:
+<Begin of PPT>
+{3}
+<End of PPT>"""
+
+
+action_prompt = """
+
 """
 
 def get_instruction_to_API_code_prompt2(selected_API, ppt_content, chat_history, instruction, ask_less_question=False, current_page=1):

@@ -156,7 +156,8 @@ def eval(args):
             restrictions = []
             for turn_id, turn in tqdm(enumerate(session)):
                 turn_id, instruction, label_api, reply, pred_api, pred_ppt_path, label_ppt_path, prompt_path = turn
-                print(pred_ppt_path, label_ppt_path)
+                # label_ppt_path = label_ppt_path.replace(f"{turn_id}.", "0.") # Code to recreate wrong label file labeling
+                # print(pred_ppt_path, label_ppt_path)
                 splitted = instruction.split('##')
                 restrictions.extend(splitted[1:])
                 api_costs.append(len(pred_api))

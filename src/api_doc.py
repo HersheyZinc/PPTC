@@ -20,6 +20,13 @@ class API(object):
         infos = [item for item in infos if item != ""]
         return '\n'.join(infos)
 
+plan_APIs = [
+    API(name="modify_slide", parameters="(slide_id, instructions)", description="This API modifies a slide based on the instructions given.", 
+        parameter_description="It takes two parameters 'slide_id' and 'instructions'. 'slide_id' is the ID of the slide to move to as a integer. 'instructions' is a string describing the modifications to be made.", api_desc="Modify a slide"),
+    API(name="new_slide", parameters="(instructions)", description="This API creates a blank slide at the end of the presentation, and modifies it based on the instructions given.", 
+        parameter_description="It takes one parameters 'instructions', a string describing the modifications to be made.",api_desc="Creates and modifies a slide"),
+]
+
 # slide
 slide_APIs = [
     API(name="create_slide", parameters="()", description="This API creates a new slide.",api_desc="create a slide"),
