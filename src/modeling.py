@@ -135,14 +135,15 @@ class PPT_assistant(object):
 
             try:
 
-                reply = openai_api.query_azure_openai(prompt, model=self.model,id=self.model_id).strip()
+                # reply = openai_api.query_azure_openai(prompt, model=self.model,id=self.model_id).strip()
+                reply = openai_api.query_azure_openai(prompt, model="ft:gpt-4o-mini-2024-07-18:personal:edi2:AxTglBO3",id=self.model_id).strip()
 
-                print('#### Reply:')
-                print(reply)
+                # print('#### Reply:')
+                # print(reply)
                 print('#### Parsed:')
                 print(utils.parse_api(reply))
-            except:
-                print("Query Failed!")
+            except Exception as e:
+                print("Query Failed!", e)
                 reply = "Query Failed!"
             if verbose:
                 print(f"== Reply from AI ==\n{reply}\n\n")

@@ -39,7 +39,7 @@ SHAPE_TOP = CENTER_TOP - SHAPE_HEIGHT / 2
 PIC_LEFT = CONTENT_LEFT
 PIC_TOP = CONTENT_TOP 
 
-PIC_PATH = "test/pics"
+PIC_PATH = "PPTC/test/pics"
 
 current_shape = None
 current_slide = None
@@ -155,7 +155,7 @@ def API_executor(lines, test=False,args=None):
             else:
                 eval(line) 
         except Exception as e:
-            print(f"ERROR: {line}")
+            print(f"ERROR: {line} - {e}")
             error_info += f"ERROR: {line}\n"
     return error_info
     

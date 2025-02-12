@@ -192,7 +192,7 @@ class Placeholder(BasicShape):
         super().__init__(shape)
         self.fill = get_fill_color(shape)
         self.text = shape.text_frame.text
-        if shape.has_text_frame:
+        if shape.has_text_frame and len(shape.text_frame.paragraphs) > 0:
             textframe = shape.text_frame
             try:
                 font = shape.text_frame.paragraphs[0].runs[0].font
@@ -351,14 +351,17 @@ def eval_get_contents(need_text=True, need_style=True, need_position=True, need_
             else:
                 continue
             s += shape.discription
-            if need_position:
-                s += shape.size_info
-            if need_text and not (shape.text_info is None):
-                s += shape.text_info
-            if need_style and not (shape.style_info is None):
-                s += shape.style_info
-            if need_position and not (shape.space_info is None):
-                s += shape.space_info
+            try:
+                if need_position:
+                    s += shape.size_info
+                if need_text and not (shape.text_info is None):
+                    s += shape.text_info
+                if need_style and not (shape.style_info is None):
+                    shape.style_info
+                if need_position and not (shape.space_info is None):
+                    s += shape.space_info
+            except:
+                pass
             s += '\n'
     return s
 

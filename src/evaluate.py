@@ -9,7 +9,7 @@ import os
 from tqdm import tqdm
 
 def calc_token_cost(path):
-    text = open(path,'r').read()    
+    text = open(path,'r', encoding="utf-8").read()    
     tokenizer = MosesTokenizer()
     tokens = tokenizer.tokenize(text)
     return len(tokens)
@@ -45,6 +45,10 @@ def calc_acc(label_path, pred_path, instruction, additional_restrictions=[]):
                 str_correct = 1
         else:
             str_correct = 1
+    else:
+        print('FAILED:')
+        print(label_path)
+        print(pred_path)
     
     print(f'String correct : {str_correct}')
     # except:
@@ -152,6 +156,7 @@ def eval(args):
             restrictions = []
             for turn_id, turn in tqdm(enumerate(session)):
                 turn_id, instruction, label_api, reply, pred_api, pred_ppt_path, label_ppt_path, prompt_path = turn
+                print(pred_ppt_path, label_ppt_path)
                 splitted = instruction.split('##')
                 restrictions.extend(splitted[1:])
                 api_costs.append(len(pred_api))

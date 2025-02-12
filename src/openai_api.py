@@ -19,24 +19,25 @@ def chat_with_backoff(**kwargs):
 @backoff.on_exception(backoff.expo, openai.error.RateLimitError)
 @backoff.on_exception(backoff.expo, openai.error.APIConnectionError)
 
+
 def embeddings_with_backoff(**kwargs):
 
-    openai.api_type = "azure"
-    openai.api_base = "https://{your name}.openai.azure.com/"
-    openai.api_version = "2022-12-01"
-    openai.api_key = os.getenv("")
-    openai.api_key = "your key"
+    # openai.api_type = "azure"
+    # openai.api_base = "https://{your name}.openai.azure.com/"
+    # openai.api_version = "2022-12-01"
+    # openai.api_key = os.getenv("OPENAI_KEY")
     return openai.Embedding.create(**kwargs)
 
-openai.api_base = "https://pptc2.openai.azure.com/"
-openai.api_key = os.getenv("OPENAI_KEY")
+# openai.api_base = "https://zlim1-m5zjd909-eastus2.openai.azure.com/"
+# openai.api_key = "DtBpu4Fpy8DtwiRjnK65WKJBQHQ7b7r43XTw3EcqBo6jCcXbJwKMJQQJ99BAACHYHv6XJ3w3AAAAACOG6QbK"
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def query_azure_openai(query, model = "vicuna-13b-v1.5-16k",id=None):
 
     if model == 'text3':
-        openai.api_type = "azure"
-        openai.api_version = "2023-03-15-preview"
-        openai.api_key = os.getenv("")
+        # openai.api_type = "azure"
+        # openai.api_version = "2023-03-15-preview"
+        # openai.api_key = os.getenv("")
         response = completions_with_backoff(
             engine="text-davinci-003",
             prompt=query,
@@ -50,10 +51,10 @@ def query_azure_openai(query, model = "vicuna-13b-v1.5-16k",id=None):
         return response["choices"][0]["text"]
     
     elif model == 'turbo':
-        openai.api_type = "azure"
+        # openai.api_type = "azure"
 
-        openai.api_version = "2023-03-15-preview"
-        openai.api_key = os.getenv("")
+        # openai.api_version = "2023-03-15-preview"
+        # openai.api_key = os.getenv("")
 
         prompt = "<|im_start|>system\nYou are a helpful assistant.\n<|im_end|>\n<|im_start|>user\nHello!\n<|im_end|>\n<|im_start|>assistant\nHow can I help you?\n<|im_end|>\n<|im_start|>user\n{0}\n<|im_end|>\n<|im_start|>assistant\n".format(
             query)
@@ -69,12 +70,44 @@ def query_azure_openai(query, model = "vicuna-13b-v1.5-16k",id=None):
         return response["choices"][0]["text"]
 
     elif model == 'gpt4':
-        openai.api_type = "azure"
+        # openai.api_type = "azure"
 
-        openai.api_version = "2023-03-15-preview"
-        openai.api_key = os.getenv("")
+        # openai.api_version = "2023-03-15-preview"
+        # openai.api_key = os.getenv("")
         response = chat_with_backoff(
-            engine="gpt-4-32k",
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful AI assistant."},
+                {"role": "user", "content": query},
+            ],
+            temperature=0,
+            max_tokens=1000,
+            top_p=0.95,
+            frequency_penalty=0,
+            presence_penalty=0,
+            stop=["<|im_end|>", "¬User¬", "</decomposed>","</query>"])
+        return response["choices"][0]["message"]["content"]
+    elif model == 'gpt4o':
+        # openai.api_type = "azure"
+
+        # openai.api_version = "2023-03-15-preview"
+        # openai.api_key = os.getenv("")
+        response = chat_with_backoff(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a helpful AI assistant."},
+                {"role": "user", "content": query},
+            ],
+            temperature=0,
+            max_tokens=1000,
+            top_p=0.95,
+            frequency_penalty=0,
+            presence_penalty=0,
+            stop=["<|im_end|>", "¬User¬", "</decomposed>","</query>"])
+        return response["choices"][0]["message"]["content"]
+    elif model == 'gpt-4o-mini':
+        response = chat_with_backoff(
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a helpful AI assistant."},
                 {"role": "user", "content": query},
@@ -87,40 +120,41 @@ def query_azure_openai(query, model = "vicuna-13b-v1.5-16k",id=None):
             stop=["<|im_end|>", "¬User¬", "</decomposed>","</query>"])
         return response["choices"][0]["message"]["content"]
     else:
-        openai.api_key = "EMPTY"
-        #if id is not None:
-        openai.api_base = "http://localhost:{0}/v1".format(id)
-        encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-        def truncate_text_with_token_count (text, max_tokens):
-            # Get the token count using tiktoken
-            num_tokens = len(encoding.encode(text))
-            # token_count = tiktoken.count_tokens(text)
-
-            if num_tokens > max_tokens:
-                # Truncate the text while preserving whole words
-                tokens = text.split()
-                truncated_tokens = tokens[:max_tokens]
-                truncated_text = ' '.join(truncated_tokens)
-                return truncated_text
-            return text
-
-        truncated_input = query#truncate_text_with_token_count(query, max_context_length)
-
-        completion = openai.ChatCompletion.create(
+        response = chat_with_backoff(
             model=model,
             messages=[
                 {"role": "system", "content": "You are a helpful AI assistant."},
-                {"role": "user", "content": truncated_input},
+                {"role": "user", "content": query},
             ],
             temperature=0,
+            max_tokens=1000,
             top_p=0.95,
+            frequency_penalty=0,
+            presence_penalty=0,
+            stop=["<|im_end|>", "¬User¬", "</decomposed>","</query>"])
+        return response["choices"][0]["message"]["content"]
 
-        )
-
-        try:
-            return completion.choices[0].message.content  # response['choices'][0]['message']['content']
-        except:
-            return ' '
+def query_openai_tools(messages, model, toolkit, k=3):
+    if k == 0:
+        return [], 1
+    response = chat_with_backoff(
+        model=model,
+        messages=messages,
+        temperature=0,
+        max_tokens=1000,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        tools=toolkit,
+        tool_choice="auto",
+    )
+    try:
+        tool_calls = response.choices[0].message.tool_calls
+        tokens = response.usage.total_tokens
+    except:
+        tool_calls, tokens = query_openai_tools(messages, model, toolkit, k-1)
+    
+    return tool_calls, tokens
 
 
 def rewrite(prompt):
@@ -134,6 +168,9 @@ def rewrite(prompt):
             max_tokens=200
             )
         return response["choices"][0]["message"]["content"]
+
+
+
 
 if __name__ == "__main__":
     prompts = """You are an AI assistant to help user to operate PowerPoint and editing the contents.
@@ -268,5 +305,5 @@ Font Style: bold=None, italic=None, underline=None, size=None, color=None, fill=
 Visual Positions: left=457, top=1600  
   
 <End of PPT>"""
-    answer = query_azure_openai(prompts, model = "vicuna-13b-v1.5-16k")
+    answer = query_azure_openai(prompts, model = "gpt4")
     print(answer)

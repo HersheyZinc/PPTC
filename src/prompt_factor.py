@@ -318,6 +318,7 @@ Don't generate instructions beyond what the user has instructed.
 Don't guess what the user may instruct in the next step and generate API for them.
 Don't use python loop to call API. You can only call API once in one line.
 If the user does not specify the page to be modified, you can directly start using the APIs without having to navigate to other pages.
+You must always call a choose() or insert() function first.
 
 You need to generate code which can finish user instruction. The multiple lines of code should be surrounded by <code> and </code> such as:
 <code>

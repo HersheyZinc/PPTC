@@ -221,6 +221,8 @@ def calc_api_cost(path):
 def check_token(model, prompt):
     if model == 'gpt4':
         max_token_limit = 8191
+    elif model == "gpt-4o-mini":
+        max_token_limit = 16000
     elif model == 'text3':
         max_token_limit = 3095
     elif 'Llama' in model:
@@ -286,7 +288,7 @@ def parse_train_json(path):
 
 def parse_test_json(path):
     turns = []
-    with open(path, 'r') as file:
+    with open(path, 'r', encoding="utf-8") as file:
         for line in file:
             data = json.loads(line)
             turn_id, instruction, label_api, reply, pred_api, pred_ppt_path, label_ppt_path, prompt_path = data['Turn'],data['User instruction'],data['Feasible API sequence'],data['Reply'],data['Pred API sequence'],data['Pred File'],data['Label File'],data['Prompt File']

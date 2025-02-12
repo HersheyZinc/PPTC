@@ -63,21 +63,18 @@ def test(ppt_assistant, args):
                     print('Exists!')
                     continue 
             turn_id, instruction, label_api, base_ppt_path, label_ppt_path, api_lack_base_ppt_path, api_lack_label_ppt_path = turn
-            if turn_id == 0 and args.sess:
-                if args.api_lack:
-                    ppt_assistant.load_ppt(args.user_path+api_lack_base_ppt_path)
-                    label_file = api_lack_label_ppt_path
-                else:
-                    ppt_assistant.load_ppt(args.user_path+base_ppt_path)
-                    label_file = label_ppt_path
+
+            if args.api_lack:
+                ppt_assistant.load_ppt(args.user_path+api_lack_base_ppt_path)
+                label_file = api_lack_label_ppt_path
+            else:
+                ppt_assistant.load_ppt(args.user_path+base_ppt_path)
+                label_file = label_ppt_path
+                
             splitted_instruction = instruction.split("##")[0]
+            print(splitted_instruction)
             if args.tf:
-                if args.api_lack:
-                    ppt_assistant.load_ppt(args.user_path+api_lack_base_ppt_path)
-                    label_file = api_lack_label_ppt_path
-                else:
-                    ppt_assistant.load_ppt(args.user_path+base_ppt_path)
-                    label_file = label_ppt_path
+
                 ppt_assistant.load_chat_history([x[0] for x in chat_history],[x[1].strip(';').split(';') for x in chat_history])
                 prompt, reply = ppt_assistant.chat(splitted_instruction, ppt_path=args.user_path+base_ppt_path, verbose=False)
                 apis = utils.parse_api(reply)
