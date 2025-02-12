@@ -414,3 +414,7 @@ def get_instruction_to_API_code_prompt2(selected_API, ppt_content, chat_history,
     instruction_line = instruction + ". Surrounding your answer with <code> and </code>." if instruction == "" or instruction[-1]!='.' else instruction + " Surrounding your answer with <code> and </code>."
     prompt = instruction_following_prompt2.format(instruction,current_page,selected_API,ppt_content) + "\n\n" + chat_prompt.format("\n".join(chat_history), instruction_line)
     return prompt
+
+def get_planning_prompt(ppt_content, chat_history, user_instruction):
+    prompt = plan_prompt.format(ppt_content, chat_history, user_instruction)
+    return prompt

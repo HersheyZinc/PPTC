@@ -7,6 +7,8 @@ from src import pptx_check
 from sacremoses import MosesTokenizer
 import os
 from tqdm import tqdm
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 def calc_token_cost(path):
     text = open(path,'r', encoding="utf-8").read()    
@@ -39,6 +41,10 @@ def calc_acc(label_path, pred_path, instruction, additional_restrictions=[]):
     # string
     label_string = ppt_reader.eval_get_contents(need_text=True, need_style=True, need_position=False,need_shape_list=None,ppt=Presentation(label_path))
     pred_string = ppt_reader.eval_get_contents(need_text=True, need_style=True, need_position=False,need_shape_list=None,ppt=Presentation(pred_path))
+    vectorizer = TfidfVectorizer().fit_transform([label_string, pred_string])
+    vectors = vectorizer.toarray()
+    cosine_sim = cosine_similarity(vectors)
+    # if cosine_sim[0, 1] > 0.98:
     if label_string == pred_string:
         if len(restrictions) > 0:
             if pos_correct == 1:
@@ -138,8 +144,11 @@ def eval(args):
             turn_nums.append(turn_num)
             print(sess_id, turn_nums)
         
-        avg_api_costs = sum(api_costs) / len(api_costs)
-        avg_token_costs = sum(token_costs) / len(token_costs)
+        if len(api_costs) == 0 or len(token_costs) == 0:
+            avg_api_costs = avg_token_costs = 0
+        else:
+            avg_api_costs = sum(api_costs) / len(api_costs)
+            avg_token_costs = sum(token_costs) / len(token_costs)
         string_acc = string_correct / string_total
         position_acc = position_correct / position_total
 

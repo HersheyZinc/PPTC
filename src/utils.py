@@ -174,6 +174,24 @@ def parse_api(codes):
     
     return apis
 
+
+def parse_tool_calls(tool_calls):
+    # print(tool_calls)
+    apis = []
+    for tool_call in tool_calls:
+        func_name = tool_call.function.name
+        func_args = json.loads(tool_call.function.arguments)
+        try:
+            args_str = ', '.join(f'{key}={value!r}' for key, value in func_args.items())
+        except:
+            args_str = ""
+
+        api_str = f"{func_name}({args_str})"
+        apis.append(api_str)
+    
+    return apis
+
+
 def prepare_exp_name(args):
     name = ""
     if args.robust:
