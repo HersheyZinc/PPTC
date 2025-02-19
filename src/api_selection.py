@@ -3,7 +3,7 @@ import openai, backoff
 import os
 import pickle
 import numpy as np
-from src import api_doc2 as api_doc
+from src import api_doc
 from src import openai_api, utils
 
 global api_embeddings

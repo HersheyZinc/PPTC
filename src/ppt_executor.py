@@ -51,15 +51,8 @@ smartart = None
 textbox = None
 shape = {}
 prs = None
+shape_dict = {getattr(MSO_SHAPE, attr):attr for attr in dir(MSO_SHAPE) if attr.isupper()}
 
-color2hex = {
-    "blue": "0000FF","light blue": "ADD8E6","dark blue": "00008B",
-    "green": "008000","light green": "90EE90","dark green": "006400",
-    "yellow": "FFFF00","light yellow": "FFFFE0","dark yellow": "BDB76B",
-    "orange": "FFA500","light orange": "FFDAB9","dark orange": "FF8C00",
-    "red": "FF0000","light red": "FFC0CB","dark red": "8B0000",
-    "black": "000000","white": "FFFFFF","purple": "800080","pink": "FFC0CB",
-}
 
 def check_api_in_list(line, api_list):
     for api in api_list:
@@ -126,10 +119,9 @@ def set_text_info(shape):
         print(e)
 
 # apis
-def API_executor(api_lines, test=False,args=None):
-    
+def API_executor(lines, test=False,args=None):
     error_info = ""
-    for line in api_lines:
+    for line in lines:
         if not test:
             if check_api_in_list(line, ["set_left","set_top","set_right","set_bottom"]):
                 continue
@@ -156,8 +148,8 @@ def API_executor(api_lines, test=False,args=None):
             else:
                 eval(line) 
         except Exception as e:
-            print(f"ERROR: {line} - {e}")
-            error_info += f"ERROR: {line}\n"
+            # print(f"ERROR: {line}", e)
+            error_info += f"ERROR: {line} - {e}\n"
     return error_info
     
 
@@ -255,18 +247,16 @@ def move_to_previous_slide():
 
 def move_to_slide(idx):
     global current_slide, current_shape
-    try:
-        slide = slides[idx]
-    except:
-        slide = None
-    if slide != None:
-        current_slide = slide
-        current_shape = None
+
+    slide = slides[idx]
+    current_slide = slide
+    current_shape = None
+        
 
 def set_background_color(color):
     global current_slide, current_shape
     current_slide.background.fill.solid()
-    current_slide.background.fill.fore_color.rgb = RGBColor.from_string(color2hex[color])
+    current_slide.background.fill.fore_color.rgb = utils.color_to_rgb(color)
 
 # choose
 def choose_title():
@@ -319,12 +309,17 @@ def choose_chart():
 
 def choose_shape(shape_name):
     global current_slide, current_shape, shape
-    if shape[shape_name] != None:
-        current_shape = shape[shape_name]
-    else:
-        for shape in current_slide.shapes:
-            if 'AUTO_SHAPE' in str(shape.shape_type):
+    for shape in current_slide.shapes:
+        if hasattr(shape, "_sp") and shape._sp.is_autoshape:
+            if shape_dict[shape.auto_shape_type] == shape_name:
                 current_shape = shape
+                break
+    # if shape[shape_name] != None:
+    #     current_shape = shape[shape_name]
+    # else:
+    #     for shape in current_slide.shapes:
+    #         if 'AUTO_SHAPE' in str(shape.shape_type):
+    #             current_shape = shape
 
 def choose_table():
     global current_slide, current_shape, table
@@ -353,6 +348,20 @@ def insert_text(text):
             pass
     set_text_info(current_shape)
     return
+
+
+def set_text(text):
+    global current_slide, current_shape
+    try:
+        current_shape.text_frame.text = text
+    except:
+        try:
+            current_shape.text = text
+        except:
+            pass
+    set_text_info(current_shape)
+    return
+
 
 def insert_bullet_point(text):
     global current_slide, current_shape
@@ -396,7 +405,7 @@ def set_font_color(color):
     global current_slide, current_shape
     for paragraph in current_shape.text_frame.paragraphs:
         for run in paragraph.runs:
-            run.font.color.rgb = RGBColor.from_string(color2hex[color])
+            run.font.color.rgb = utils.color_to_rgb(color)
 
 def set_font_bold():
     global current_slide, current_shape
@@ -443,6 +452,20 @@ def text_align_right():
         paragraph.alignment = PP_ALIGN.RIGHT
 
 # shape
+def insert_shape(shape_name):
+    global current_slide, current_shape, shape
+    shape_id = None
+    for attr in dir(MSO_SHAPE):
+        if attr == shape_name:
+            shape_id = getattr(MSO_SHAPE, attr)
+            break
+
+    if shape_id is not None:
+        current_shape = current_slide.shapes.add_shape(shape_id, SHAPE_LEFT, SHAPE_TOP, SHAPE_WIDTH, SHAPE_HEIGHT)
+    else:
+        raise AttributeError(f"Shape '{shape_name}' not found in MSO_SHAPE attributes.")
+
+
 def insert_rectangle():
     global current_slide, current_shape, shape
     current_shape = current_slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, SHAPE_LEFT, SHAPE_TOP, SHAPE_WIDTH, SHAPE_HEIGHT)
@@ -510,7 +533,7 @@ def rotate_element(angle):
 def set_fill_color(color):
     global current_slide, current_shape
     current_shape.fill.solid()
-    current_shape.fill.fore_color.rgb = RGBColor.from_string(color2hex[color])
+    current_shape.fill.fore_color.rgb = utils.color_to_rgb(color)
 
 def align_top_right_corner():
     global current_slide, current_shape
@@ -558,6 +581,14 @@ def set_left(left):
     current_shape.left = left
 
 def set_top(top):
+    global current_slide, current_shape
+    current_shape.top = top
+
+def set_x(left):
+    global current_slide, current_shape
+    current_shape.left = left
+
+def set_y(top):
     global current_slide, current_shape
     current_shape.top = top
 
@@ -620,7 +651,11 @@ def insert_pie_chart(data,series=None):
 
 def set_chart_title(title):
     global current_slide, current_shape
-    current_shape.chart_title.text_frame.text = title
+    if hasattr(current_shape, "chart"):
+        current_shape.chart.chart_title.text_frame.text = title
+    else:
+        current_shape.chart_title.text_frame.text = title
+    
 
 if __name__ == '__main__':
     prs = Presentation()

@@ -3,8 +3,10 @@ import os
 from src import dataset
 from src import api_doc
 from sacremoses import MosesTokenizer
+from pptx.dml.color import RGBColor
 import tiktoken
 import json
+import re
 
 def write_list(lst, filename):
     with open(filename, "wb") as f:
@@ -313,6 +315,33 @@ def parse_test_json(path):
             turns.append([turn_id, instruction, label_api, reply, pred_api, pred_ppt_path, label_ppt_path, prompt_path])
     return turns
 
+def validate_hex(hex_string):
+    if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', hex_string):
+        return True
+    elif re.search(r'(?:[0-9a-fA-F]{3}){1,2}$', hex_string):
+        return True
+    else:
+        return False
+    
+def color_to_rgb(color_str:str):
+    color_mapping = {
+        "blue": "0000FF","light blue": "ADD8E6","dark blue": "00008B",
+        "green": "008000","light green": "90EE90","dark green": "006400",
+        "yellow": "FFFF00","light yellow": "FFFFE0","dark yellow": "BDB76B",
+        "orange": "FFA500","light orange": "FFDAB9","dark orange": "FF8C00",
+        "red": "FF0000","light red": "FFC0CB","dark red": "8B0000",
+        "black": "000000","white": "FFFFFF","purple": "800080","pink": "FFC0CB",
+    }
+    # Check if input is valid hex code
+    if validate_hex(color_str):
+        color_hex = color_str.replace("#","")
+    # Check if input has a mapped hex value
+    elif color_str in color_mapping:
+        color_hex = color_mapping[color_str]
+    else:
+        color_hex = "000000"
+    
+    return RGBColor.from_string(color_hex)
 
 if __name__ == '__main__':
     # code_str = "<code>insert_picture('1.png');insert_picture('2.png')</code>##<code>insert_picture('3.png')</code>"

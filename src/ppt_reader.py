@@ -4,6 +4,7 @@ import pptx.parts.image
 import pptx.enum.shapes as shapes
 from pptx import Presentation
 from pptx.enum.dml import MSO_THEME_COLOR, MSO_FILL
+from pptx.enum.shapes import MSO_SHAPE
 from pptx.dml.color import RGBColor
 from .content_selection import *
 from .openai_api import *
@@ -17,7 +18,7 @@ slide_height = 0
 slide_width = 0
 shape_list = ['PLACEHOLDER', 'PICTURE', 'CHART', 'TABLE', 'TEXT_BOX', 'AUTO_SHAPE']
 slides = None
-
+shape_dict = {getattr(MSO_SHAPE, attr):attr for attr in dir(MSO_SHAPE) if attr.isupper()}
 
 def get_fill_color(shape):
     if shape.fill.type == 1:  # Solid fill
@@ -213,7 +214,7 @@ class Placeholder(BasicShape):
     @property
     def text_info(self):
         if self.text is not None:
-            return f"Text: \n{self.text}\n"
+            return f"Text: {self.text}\n"
         else:
             return ""
     
@@ -227,6 +228,7 @@ class AutoShape(BasicShape):
         super().__init__(shape)
         self.text = shape.text_frame.text
         self.fill = get_fill_color(shape)
+        self.auto_shape_type = shape.auto_shape_type
     
     @property
     def text_info(self):
@@ -236,6 +238,10 @@ class AutoShape(BasicShape):
     def style_info(self):
         return f"Shape Style: fill={self.fill}\n"
         # return ""
+
+    @property
+    def discription(self):
+        return f"[{shape_dict[self.auto_shape_type]}]\n"
 
 def hasshape(shape_str, shape_list):
     for shape in shape_list:
@@ -258,22 +264,24 @@ def get_content(need_text,need_style,need_position,need_title,need_content,need_
 
         for shape in slide.shapes:
             shape_type = shape.shape_type
-
-            if 'PLACEHOLDER' in str(shape_type) and (need_title or need_content):
-                shape = Placeholder(shape)
-            elif 'PICTURE' in str(shape_type) and need_picture:
-                shape = Picture(shape,picture_idx)
-                picture_idx += 1
-            elif 'CHART' in str(shape_type) and need_chart:
-                shape = Chart(shape)
-            elif 'TABLE' in str(shape_type) and need_table:
-                shape = Table(shape)
-            elif 'TEXT_BOX' in str(shape_type) and (need_textbox or (global_args.dataset=='long' and (need_title or need_content))):
-                shape = Textbox(shape,textbox_idx)
-                textbox_idx += 1
-            elif 'AUTO_SHAPE' in str(shape_type) and need_shape:
-                shape = AutoShape(shape)
-            else:
+            try:
+                if 'PLACEHOLDER' in str(shape_type) and (need_title or need_content):
+                    shape = Placeholder(shape)
+                elif 'PICTURE' in str(shape_type) and need_picture:
+                    shape = Picture(shape,picture_idx)
+                    picture_idx += 1
+                elif 'CHART' in str(shape_type) and need_chart:
+                    shape = Chart(shape)
+                elif 'TABLE' in str(shape_type) and need_table:
+                    shape = Table(shape)
+                elif 'TEXT_BOX' in str(shape_type) and (need_textbox or (global_args.dataset=='long' and (need_title or need_content))):
+                    shape = Textbox(shape,textbox_idx)
+                    textbox_idx += 1
+                elif 'AUTO_SHAPE' in str(shape_type) and need_shape:
+                    shape = AutoShape(shape)
+                else:
+                    continue
+            except:
                 continue
 
             s += shape.discription
@@ -334,21 +342,24 @@ def eval_get_contents(need_text=True, need_style=True, need_position=True, need_
         for shape in slide.shapes:
             if need_shape_list is not None and not hasshape(str(shape.shape_type), need_shape_list):
                 continue
-            if 'PLACEHOLDER' in str(shape.shape_type):
-                shape = Placeholder(shape)
-            elif 'PICTURE' in str(shape.shape_type):
-                shape = Picture(shape,picture_idx)
-                picture_idx += 1
-            elif 'CHART' in str(shape.shape_type):
-                shape = Chart(shape)
-            elif 'TABLE' in str(shape.shape_type):
-                shape = Table(shape)
-            elif 'TEXT_BOX' in str(shape.shape_type):
-                shape = Textbox(shape,textbox_idx)
-                textbox_idx += 1
-            elif 'AUTO_SHAPE' in str(shape.shape_type):
-                shape = AutoShape(shape)
-            else:
+            try:
+                if 'PLACEHOLDER' in str(shape.shape_type):
+                    shape = Placeholder(shape)
+                elif 'PICTURE' in str(shape.shape_type):
+                    shape = Picture(shape,picture_idx)
+                    picture_idx += 1
+                elif 'CHART' in str(shape.shape_type):
+                    shape = Chart(shape)
+                elif 'TABLE' in str(shape.shape_type):
+                    shape = Table(shape)
+                elif 'TEXT_BOX' in str(shape.shape_type):
+                    shape = Textbox(shape,textbox_idx)
+                    textbox_idx += 1
+                elif 'AUTO_SHAPE' in str(shape.shape_type):
+                    shape = AutoShape(shape)
+                else:
+                    continue
+            except:
                 continue
             s += shape.discription
             try:
@@ -366,7 +377,9 @@ def eval_get_contents(need_text=True, need_style=True, need_position=True, need_
     return s
 
 
-def get_slide_content(need_text=True, need_style=True, need_position=True, need_shape_list=None, ppt=None, slide_idx=0, need_dimensions=True):
+def get_slide_content(need_text=True, need_style=True, need_position=True, need_shape=True, need_content=True,
+                      need_title=True, need_picture=True, need_chart=True, need_table=True, need_textbox=True,
+                      ppt=None, slide_idx=0, need_dimensions=True):
     global slides
     global global_args
     
@@ -379,49 +392,48 @@ def get_slide_content(need_text=True, need_style=True, need_position=True, need_
     textbox_idx = 0
     picture_idx = 0
     for shape in slide.shapes:
-        if need_shape_list is not None and not hasshape(str(shape.shape_type), need_shape_list):
-            continue
-        if 'PLACEHOLDER' in str(shape.shape_type):
+        shape_type = shape.shape_type
+
+        if 'PLACEHOLDER' in str(shape_type) and (need_title or need_content):
             shape = Placeholder(shape)
-        elif 'PICTURE' in str(shape.shape_type):
+        elif 'PICTURE' in str(shape_type) and need_picture:
             shape = Picture(shape,picture_idx)
             picture_idx += 1
-        elif 'CHART' in str(shape.shape_type):
+        elif 'CHART' in str(shape_type) and need_chart:
             shape = Chart(shape)
-        elif 'TABLE' in str(shape.shape_type):
+        elif 'TABLE' in str(shape_type) and need_table:
             shape = Table(shape)
-        elif 'TEXT_BOX' in str(shape.shape_type):
+        elif 'TEXT_BOX' in str(shape_type) and (need_textbox or (global_args.dataset=='long' and (need_title or need_content))):
             shape = Textbox(shape,textbox_idx)
             textbox_idx += 1
-        elif 'AUTO_SHAPE' in str(shape.shape_type):
+        elif 'AUTO_SHAPE' in str(shape_type) and need_shape:
             shape = AutoShape(shape)
         else:
             continue
+
         s += shape.discription
-        try:
-            if need_position:
-                s += shape.size_info
-            if need_text and not (shape.text_info is None):
-                s += shape.text_info
-            if need_style and not (shape.style_info is None):
-                shape.style_info
-            if need_position and not (shape.space_info is None):
-                s += shape.space_info
-        except:
-            pass
+        if need_position:
+            s += shape.size_info
+        if need_text and not (shape.text_info is None):
+            s += shape.text_info
+        if need_style and not (shape.style_info is None):
+            s += shape.style_info
+        if need_position and not (shape.space_info is None):
+            s += shape.space_info
         s += '\n'
 
     return s
 
 
-def get_ppt_content(need_text=True, need_style=True, need_position=True, need_shape_list=None, ppt=None):
+def get_ppt_content(ppt=None):
     global slides
     global global_args
     slides = ppt.slides
 
     s = f"There are {len(ppt.slides)} slides with slide height {ppt.slide_height//SCALE} and slide width {ppt.slide_width//SCALE}.\n"
     for idx, _ in enumerate(slides):
-        s += get_slide_content(need_text=need_text, need_style=need_style, need_position=need_position, need_shape_list=need_shape_list, ppt=ppt, slide_idx=idx, need_dimensions=False)
+        s += f"**Slide {idx}**\n"
+        s += get_slide_content(ppt=ppt, slide_idx=idx, need_dimensions=False)
         s += "\n"
 
     return s

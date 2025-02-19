@@ -23,19 +23,17 @@ class API(object):
 plan_APIs = [
     API(name="modify_slide", parameters="(slide_id, instructions)", description="This API modifies a slide based on the instructions given.", 
         parameter_description="It takes two parameters 'slide_id' and 'instructions'. 'slide_id' is the ID of the slide to move to as a integer. 'instructions' is a string describing the modifications to be made.", api_desc="Modify a slide"),
-    API(name="new_slide", parameters="(instructions)", description="This API creates a blank slide at the end of the presentation, and modifies it based on the instructions given.", 
+    API(name="new_slide", parameters="(instructions)", description="This API creates a blank slide at the end of the presentation, and modifies it based on the instructions given. Only call this API if the instructions explicitly ask for a new slide.", 
         parameter_description="It takes one parameters 'instructions', a string describing the modifications to be made.",api_desc="Creates and modifies a slide"),
 ]
 
 # slide
 slide_APIs = [
     API(name="create_slide", parameters="()", description="This API creates a new slide.",api_desc="create a slide"),
-    API(name="move_to_previous_slide", parameters="()", description="This API moves to the previous slide.",api_desc="move to previous slide"),
-    API(name="move_to_next_slide", parameters="()", description="This API moves to the next slide.",api_desc="move to next slide"),
+    # API(name="move_to_previous_slide", parameters="()", description="This API moves to the previous slide.",api_desc="move to previous slide"),
+    # API(name="move_to_next_slide", parameters="()", description="This API moves to the next slide.",api_desc="move to next slide"),
     API(name="move_to_slide", parameters="(slide_id)", description="This API moves to the slide with given slide id.", 
         parameter_description="It takes one parameter 'slide_id', the ID of the slide to move to as a integer.",api_desc="move to slide x"),
-    API(name="set_background_color", parameters="(color)", description="This API sets the background color of the slide.",
-        parameter_description="It takes one parameter 'color', the color name to set as a string, such as 'red', 'purple'.",api_desc="background color"),
 ]
 
 # choose
@@ -46,21 +44,20 @@ choose_APIs = [
         composition_instruction="You should first call choose_content() before inserting text to or changing font attributes of the content.",api_desc="choose content, insert text, bullet point"),
     # API(name="choose_textbox", parameters="()", description="This API selects the textbox element on the slide.", 
     #     composition_instruction="You should first call choose_textbox() before inserting text to or changing font attributes of the textbox element.",api_desc="choose textbox"),
-    API(name="choose_textbox", parameters="(idx)", description="This API selects the textbox element on the slide.", 
-        parameter_description="It takes one parameter, the index of textbox as integer. idx is set to 0 by default, meaning the first textbox.",
-        composition_instruction="You should first call choose_textbox() before inserting text to or changing font attributes of the textbox element.",api_desc="choose textbox, insert text,"),
+    # API(name="choose_textbox", parameters="(idx)", description="This API selects the textbox element on the slide.", 
+    #     parameter_description="It takes one parameter, the index of textbox as integer. idx is set to 0 by default, meaning the first textbox.",
+    #     composition_instruction="You should first call choose_textbox() before inserting text to or changing font attributes of the textbox element.",api_desc="choose textbox, insert text,"),
     API(name="choose_picture", parameters="(idx)", description="This API selects the picture element on the slide.", 
         parameter_description="It takes one parameter, the index of textbox as integer. idx is set to 0 by default, meaning the first textbox.",
         composition_instruction="You should first call choose_picture() before changing height, width, rotation of the picture element. You should not call choose_picture() before inserting picture element.",api_desc="picture, image"),
     API(name="choose_chart", parameters="()", description="This API selects the chart element on the slide.", 
         composition_instruction="You should first call choose_chart() before changing the chart. You should not call choose_chart() before inserting chart element.",api_desc="chart"),
     API(name="choose_shape", parameters="(shape_name)", description="This API selects a specific shape by shape name on the slide.", 
-        parameter_description="It takes one parameter 'shape_name', the name of the shape to select as a string. \
-        shape_name can be chosen from ['rectangle','right_arrow','rounded_rectangle','triangle','callout','cloud','star','circle']", 
+        parameter_description="It takes one parameter 'shape_name', the name of the shape to select as a string.", 
         composition_instruction="You should first call choose_shape(shape_name) before you can do operations on the shape. You should not call choose_shape(shape_name) before inserting shape element.",
-        api_desc="choose ['rectangle','right_arrow','rounded_rectangle','triangle','callout','cloud','star','circle']"),
+        api_desc="choose shape by name"),
     API(name="choose_table", parameters="()", description="This API selects the table element on the slide.",
-        composition_instruction="You should first call choose_table() before changing the table. You should not call choose_table() before inserting table element.",api_desc="table, row, column"),
+        composition_instruction="You should first call choose_table() before modfying the tabke. You should not call choose_table() before inserting a table.",api_desc="table, row, column"),
     API(name="choose_table_cell", parameters="(row_id, column_id)", description="This API selects a specific cell in the table by giving row_id and column_id.",
         parameter_description="It takes two parameters, the row id and column id of the cell to select as integers (id starts from 0). Remember the first parameter is row id, the second parameter is column id.",
         composition_instruction="You should first call choose_table_cell(row_id, column_id) before inserting text into a specific cell of the table.",api_desc="table, row, column, cell"),
@@ -99,25 +96,28 @@ basic_APIs = [
         composition_instruction="You should first choose an object before you can call align_slide_right()."),
     API(name="align_slide_center", parameters="()", description="This API moves the selected object to the center of the slide.",
         composition_instruction="You should first choose an object before you can call align_slide_center()."),
-    API(name="set_left", parameters="(left)", description="This API moves and changes the object's position. It sets the x position of the selected object's leftmost point.",
+    API(name="set_x", parameters="(left)", description="This API moves and changes the object's horizontal position. It sets the x position of the selected object's leftmost point.",
         parameter_description="It takes one parameter, the x position to set.",composition_instruction="You should first choose an object before you can change the left of it",api_desc="move an object, left, middle, center, right"),
-    API(name="set_top", parameters="(top)", description="This API moves and changes the object's position. It sets the y position of the selected object's upmost point.",
+    API(name="set_y", parameters="(top)", description="This API moves and changes the object's vertical position. It sets the y position of the selected object's upmost point.",
         parameter_description="It takes one parameter, the y position to set.",composition_instruction="You should first choose an object before you can change the top of it",api_desc="move an object, top, middle, center, bottom"),  
+    API(name="set_background_color", parameters="(color)", description="This API sets the background color of the slide.",
+        parameter_description="It takes one parameter 'color', the color name to set as a string, such as 'red', 'purple'.",api_desc="background color"),
 ]
 
 # text
 text_APIs = [
-    API(name="insert_text", parameters="(text)", description="This API inserts text into a text frame (textbox, title, content, table).",api_desc='insert or name text, title, content, table, textbox with given text ""'),
-    API(name="insert_bullet_point", parameters="(text)", description="This API inserts a bullet point into the content.",
-        parameter_description="It takes one parameter, the text of the bullet point to insert as a string.",api_desc="bullet point"),
+    API(name="insert_text", parameters="(text)", description="This API inserts text into a text frame (textbox, title, content, table).",api_desc='insert or name text, title, content, table, textbox with given text""'),
+    API(name="set_text", parameters="(text)", description="This API overwrites text into a text frame (textbox, title, content, table).",api_desc='replace text, title, content, table, textbox with given text""'),
+    API(name="insert_bullet_point", parameters="(text)", description="This API inserts text as a bullet point into the content.",
+        parameter_description="It takes one parameter, the text of the bullet point to insert as a string. Input this parameter as an empty string \'\' to insert an empty bullet point.",api_desc="bullet point"),
     API(name="insert_note", parameters="(text)", description="This API inserts a note onto the slide.",
         parameter_description="It takes one parameter, the note text to insert as a string.",api_desc="note"),
     API(name="insert_textbox", parameters="()", description="This API inserts a textbox onto the slide.",
         composition_instruction="When you need to add a caption or text under/above/left to/right to an object, you can call insert_textbox().",api_desc="textbox"),
-    API(name="delete_text", parameters="()", description="This API delete the text part of an object.",
-        composition_instruction="You should first choose content or title before you can call delete_text()",api_desc="delete text, change text"),
+    # API(name="delete_text", parameters="()", description="This API delete the text part of an object.",
+    #     composition_instruction="You should first choose content or title before you can call delete_text()",api_desc="delete text, change text"),
     API(name="set_font_size", parameters="(font_size)", description="This API sets the size of the font",
-        parameter_description="It can take one argument 'font_size', the font size to set as an integer.",api_desc="font size"),
+        parameter_description="It can take one argument 'font_size', the font size to set as an integer between 100 and 40000.",api_desc="font size"),
     API(name="set_font_color", parameters="(color)", description="This API sets the color of the font.",
         parameter_description="It takes one parameter 'color', the color name to set as a string, such as 'red', 'purple'.",api_desc="font color: red, purple, blue, green, yellow, orange"),
     API(name="set_font_bold", parameters="()", description="This API sets the font to be bold.",api_desc="bold"),
@@ -127,9 +127,9 @@ text_APIs = [
         parameter_description="It can take one argument 'font_style', the font name as a string.",api_desc="font style"),
     API(name="set_line_space", parameters="(line_space_level)", description="This API sets the line spacing of the selected text.",
         parameter_description="It can take one argument 'line_space_level', as an integer, default 0.",api_desc="line space"),
-    API(name="text_align_left", parameters="()", description="This API aligns the text to left.",api_desc="text align left"), 
-    API(name="text_align_center", parameters="()", description="This API aligns the text to center.",api_desc="text align center"), 
-    API(name="text_align_right", parameters="()", description="This API aligns the text to right.",api_desc="text align right"),
+    # API(name="text_align_left", parameters="()", description="This API aligns the text to left.",api_desc="text align left"), 
+    # API(name="text_align_center", parameters="()", description="This API aligns the text to center.",api_desc="text align center"), 
+    # API(name="text_align_right", parameters="()", description="This API aligns the text to right.",api_desc="text align right"),
 ]
 
 # picture
@@ -138,16 +138,20 @@ picture_APIs = [
         parameter_description="It takes one parameter 'picture_name', the name or description of picture as a string",api_desc="picture, image"), 
 ]
 
-# shape
+# # shape
+# shape_APIs = [
+#     API(name="insert_rectangle", parameters="()", description="This API inserts a rectangle or square shape onto the slide.",api_desc="rectangle, square"),
+#     API(name="insert_right_arrow", parameters="()", description="This API inserts an arrow shape onto the slide.",api_desc="arrow"),
+#     API(name="insert_rounded_rectangle", parameters="()", description="This API inserts a rounded rectangle shape onto the slide.",api_desc="rounded rectangle"),
+#     API(name="insert_triangle", parameters="()", description="This API inserts a triangle shape onto the slide.",api_desc="triangle"),
+#     API(name="insert_callout", parameters="()", description="This API inserts a callout shape onto the slide.",api_desc="callout"),
+#     API(name="insert_cloud", parameters="()", description="This API inserts a cloud shape onto the slide.",api_desc="cloud"),
+#     API(name="insert_star", parameters="()", description="This API inserts a star shape onto the current slide.",api_desc="star"),
+#     API(name="insert_circle", parameters="()", description="This API inserts a circle or oval shape into the current slide.",api_desc="circle, oval"),
+# ]
 shape_APIs = [
-    API(name="insert_rectangle", parameters="()", description="This API inserts a rectangle or square shape onto the slide.",api_desc="rectangle, square"),
-    API(name="insert_right_arrow", parameters="()", description="This API inserts an arrow shape onto the slide.",api_desc="arrow"),
-    API(name="insert_rounded_rectangle", parameters="()", description="This API inserts a rounded rectangle shape onto the slide.",api_desc="rounded rectangle"),
-    API(name="insert_triangle", parameters="()", description="This API inserts a triangle shape onto the slide.",api_desc="triangle"),
-    API(name="insert_callout", parameters="()", description="This API inserts a callout shape onto the slide.",api_desc="callout"),
-    API(name="insert_cloud", parameters="()", description="This API inserts a cloud shape onto the slide.",api_desc="cloud"),
-    API(name="insert_star", parameters="()", description="This API inserts a star shape onto the current slide.",api_desc="star"),
-    API(name="insert_circle", parameters="()", description="This API inserts a circle or oval shape into the current slide.",api_desc="circle, oval"),
+    API(name="insert_shape", parameters="(shape_name)", description="This API inserts a shape into the slide.",
+        parameter_description="It takes one parameter 'shape_name', a string from ['RECTANGLE', 'OVAL', 'ISOSCELES_TRIANGLE', 'RIGHT_ARROW', 'ROUNDED_RECTANGLE', 'BALLOON', 'CLOUD', 'STAR_5_POINT']", )
 ]
 
 # table
@@ -166,7 +170,7 @@ chart_APIs = [
     API(name="insert_bar_chart", parameters="(data, series)", description="This API inserts a bar chart onto the slide.",
         parameter_description="It takes two argument, 'data' is a list of numbers and 'series' is a list of strings.",api_desc="bar chart"),
     API(name="insert_pie_chart", parameters="(data, series)", description="This API inserts a pie chart onto the slide.",
-        parameter_description="It takes two argument, 'data' is a list of numbers and 'series' is a list of strings.",api_desc="pie chart"),
+        parameter_description="It takes two argument, 'data' is a list of decimals summing to 1 and 'series' is a list of strings.",api_desc="pie chart"),
     API(name="set_chart_title", parameters="(title)", description="This API sets the title of a previously inserted chart.",
         parameter_description="It takes one argument 'title', the title to be set as a string.",api_desc="chart title"),
 ]

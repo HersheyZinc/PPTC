@@ -1,5 +1,6 @@
 
 from src import ppt_executor, ppt_reader, openai_api, prompt_factor, dataset, api_selection, utils, api_doc
+import re
 
 class PPT_assistant(object):
     def __init__(self, args=None):
@@ -45,10 +46,14 @@ class PPT_assistant(object):
     def api_executor(self, apis, test=False):
         print('Executing APIs...')
         error_info = ppt_executor.API_executor(apis,test=test,args=self.args)
-        if error_info!="":
-            print(error_info)
+        
         self.ppt = ppt_executor.get_ppt()
         self.current_page_id = ppt_executor.get_current_page_id()
+
+        if error_info!="":
+            print(error_info)
+            with open('PPTC/error.txt', 'a') as error_file:
+                error_file.write(f"Error on slide {self.current_page_id}\n{error_info}")
     
     def load_chat_history(self, instructions, labels):
         history = []
@@ -68,7 +73,7 @@ class PPT_assistant(object):
     def load_ppt(self, path):
         ppt_executor.set_ppt(path)
         if path != None:
-            self.current_page_id = len(ppt_executor.get_ppt().slides)-1
+            self.current_page_id = min(len(ppt_executor.get_ppt().slides)-1, self.current_page_id)
             ppt_executor.set_current_slide(self.current_page_id)
         else:
             ppt_executor.create_slide()
@@ -136,11 +141,15 @@ class PPT_assistant(object):
             try:
 
                 reply = openai_api.query_azure_openai(prompt, model=self.model,id=self.model_id).strip()
+                # reply = openai_api.query_azure_openai(prompt, model="ft:gpt-4o-mini-2024-07-18:personal:test-instruct-only:AtnrHSqF",id=self.model_id).strip()
 
                 # print('#### Reply:')
                 # print(reply)
                 print('#### Parsed:')
                 print(utils.parse_api(reply))
+                apis = utils.parse_api(reply)
+                self.api_executor(apis, test=True)
+
             except Exception as e:
                 print("Query Failed!", e)
                 reply = "Query Failed!"
@@ -154,3 +163,73 @@ class PPT_assistant(object):
             reply_list.append(reply)
 
         return self.prompt, "\n".join(reply_list)
+    
+
+    def chat2(self, user_instruction, ppt_path, verbose=False):
+        self.prompt = ""
+        api_list = []
+
+        plan_APIs = api_doc.plan_APIs
+        API_string = "\n".join(map(str, plan_APIs))
+        ppt_content = ppt_reader.get_ppt_content(ppt=self.ppt)
+        
+        plan_prompt = prompt_factor.get_plan_prompt(user_instruction, self.current_page_id, API_string, ppt_content, self.chat_history)
+        # print(plan_prompt)
+        self.prompt += plan_prompt
+
+        try:
+            reply = openai_api.query_azure_openai(plan_prompt, model=self.model,id=self.model_id).strip()
+            plan_apis = utils.parse_api(reply)
+            # print('#### Reply:')
+            # print(reply)
+            print('#### Parsed:')
+            print(plan_apis)
+        except Exception as e:
+            print("Query Failed!", e)
+            plan_apis = []
+        
+
+        for api in plan_apis:
+            match_1 = re.match(r"modify_slide\((\d+),\s*'(.+)'\)", api)
+            match_2 = re.match(r"new_slide\('(.+)'\)", api)
+            if match_1:
+                slide_id = int(match_1.group(1))
+                instructions = match_1.group(2)
+                fn = f"move_to_slide({slide_id})"
+            elif match_2:
+                instructions = match_2.group(1)
+                fn = f"create_slide()"
+            else:
+                continue
+
+            self.api_executor([fn], test=True)
+            api_list.append(fn)
+
+
+            plan_APIs = api_doc.choose_APIs + api_doc.basic_APIs + api_doc.text_APIs + api_doc.picture_APIs + api_doc.shape_APIs + api_doc.table_APIs + api_doc.chart_APIs
+            API_string = "\n".join(map(str, plan_APIs))
+            slide_content = ppt_reader.get_slide_content(ppt = self.ppt, slide_idx=self.current_page_id)
+            action_prompt = prompt_factor.get_action_prompt(instructions, API_string, slide_content)
+            # print(action_prompt)
+            self.prompt += "\n\n" + action_prompt
+            try:
+                reply = openai_api.query_azure_openai(action_prompt, model=self.model,id=self.model_id).strip()
+                action_apis = utils.parse_api(reply)
+                # print('#### Reply:')
+                # print(reply)
+                print('#### Parsed:')
+                print(action_apis)
+            except Exception as e:
+                print("Query Failed!", e)
+                action_apis = []
+
+            self.api_executor(action_apis, test=True)
+            api_list.extend(action_apis)
+                
+        reply = "<code>\n" + ";\n".join(api_list) + "\n</code>"
+        return self.prompt, reply
+            
+
+
+
+        

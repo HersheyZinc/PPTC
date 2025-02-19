@@ -75,11 +75,10 @@ def test(ppt_assistant, args):
             if args.tf:
 
                 ppt_assistant.load_chat_history([x[0] for x in chat_history],[x[1].strip(';').split(';') for x in chat_history])
-                prompt, tool_calls = ppt_assistant.chat(splitted_instruction, ppt_path=args.user_path+base_ppt_path, verbose=False)
-                print(splitted_instruction)
-
+                prompt, reply = ppt_assistant.chat(splitted_instruction, ppt_path=args.user_path+base_ppt_path, verbose=False)
+                apis = utils.parse_api(reply)
+                # ppt_assistant.api_executor(apis,test=True)
                 
-                ppt_assistant.api_executor(tool_calls,test=True)
                 ppt_executor.save_ppt(args.user_path+f'PPT_Pred_File/{set_name}/{args.exp_name}_{sess_id}_{turn_id}.pptx')
                 utils.write_lines([prompt],args.user_path+f'PPT_Prompt_File/{set_name}/{args.exp_name}_{sess_id}_{turn_id}.txt')
                 #import pdb
@@ -93,7 +92,7 @@ def test(ppt_assistant, args):
             elif args.sess:
                 prompt, reply = ppt_assistant.chat(instruction, ppt_path=None, verbose=False)
                 apis = utils.parse_api(reply)
-                ppt_assistant.api_executor(apis,test=True)
+                # ppt_assistant.api_executor(apis,test=True)
 
                 ppt_executor.save_ppt(args.user_path+f'PPT_Pred_File/{set_name}/{args.exp_name}_{sess_id}_{turn_id}.pptx')
                 utils.write_lines([prompt],args.user_path+f'PPT_Prompt_File/{set_name}/{args.exp_name}_{sess_id}_{turn_id}.txt')
@@ -101,8 +100,7 @@ def test(ppt_assistant, args):
                 with jsonlines.open(args.user_path+f"PPT_test_output/{set_name}/{args.exp_name}_session_{sess_id}.json", mode='a') as writer:
                     data={'Turn':turn_id,'User instruction':instruction,'Feasible API sequence':label_api,'Reply':reply,'Pred API sequence':apis,'Pred File':f'PPT_Pred_File/{set_name}/{args.exp_name}_{sess_id}_{turn_id}.pptx','Label File':label_file,'Prompt File':f'PPT_Prompt_File/{set_name}/{args.exp_name}_{sess_id}_{turn_id}.txt'}
                     writer.write(data)
-
-        break
+        # break
 
 def test_planning(ppt_assistant):
     instructions, labels = dataset.load_data(args.data_path, args.dataset)

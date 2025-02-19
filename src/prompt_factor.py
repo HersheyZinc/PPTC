@@ -357,7 +357,7 @@ API();
 For instance, if the user instruction is "Change the title to Cheese", your response should be:
 <code>
 choose_title();
-insert_text('Cheese');
+set_text('Cheese');
 </code>
 
 You have access to the following PowerPoint APIs: 
@@ -383,8 +383,9 @@ plan_prompt = """You are an AI assistant designed to help users operate and edit
 You have been given the following user instruction: '{0}'. Your task is to complete this instruction using the provided APIs and PowerPoint content.
 The user is currently looking at slide {1}.
 
-Please adhere strictly to the user's instruction. Do not generate additional instructions or anticipate future user requests. 
-Avoid using Python loops; each API call should be on a separate line. Always call the appropriate choose() or insert() function before modifying any slide elements.
+Please adhere strictly to the user's instruction. Do not generate additional instructions or anticipate future user requests.
+Avoid using Python loops; each API call should be on a separate line. Restrict your output to a single API call for each slide that is modified.
+Create new slides only if the instructions explicitly request it.
 
 Generate the necessary code to fulfill the user's instruction. Enclose the code in <code> and </code> tags, like this:
 <code>
@@ -392,9 +393,9 @@ API();
 API();
 </code>
 
-For instance, if the user instruction is "Change the title to Cheese", your response should be:
+For instance, if the user instruction is "Change the title to Cheese and set font size to 24", your response should be:
 <code>
-modify_slide(slide_id=0, instructions='Change the title to \"Cheese\"');
+modify_slide(0, 'Change the title to \"Cheese\", set the title font size to 24.');
 </code>
 
 You have access to the following PowerPoint APIs: 
@@ -406,15 +407,43 @@ Here is the current content of the PowerPoint presentation:
 <End of PPT>"""
 
 
-action_prompt = """
+action_prompt = """You are an AI assistant designed to help users operate and edit PowerPoint slides.
+You have been given the following user instruction: '{0}'. Your task is to complete this instruction using the provided APIs and PowerPoint slide content.
 
+Please adhere strictly to the user's instruction. Do not generate additional instructions or anticipate future user requests. 
+Avoid using Python loops; each API call should be on a separate line. Always call the appropriate choose() or insert() function before modifying any slide elements.
+
+Generate the necessary code to fulfill the user's instruction. Enclose the code in <code> and </code> tags, like this:
+<code>
+API();
+API();
+</code>
+
+For instance, if the user instruction is "Change the title to Cheese", your response should be:
+<code>
+choose_title();
+set_text("Cheese");
+</code>
+
+You have access to the following PowerPoint APIs: 
+{1}
+
+Here is the current content of the PowerPoint presentation:
+<Begin of PPT slide>
+{2}
+<End of PPT slide>
 """
 
 def get_instruction_to_API_code_prompt2(selected_API, ppt_content, chat_history, instruction, ask_less_question=False, current_page=1):
     instruction_line = instruction + ". Surrounding your answer with <code> and </code>." if instruction == "" or instruction[-1]!='.' else instruction + " Surrounding your answer with <code> and </code>."
-    prompt = instruction_following_prompt2.format(instruction,current_page,selected_API,ppt_content) + "\n\n" + chat_prompt.format("\n".join(chat_history), instruction_line)
+    prompt = instruction_following_prompt3.format(instruction,current_page,selected_API,ppt_content) + "\n\n" + chat_prompt.format("\n".join(chat_history), instruction_line)
     return prompt
 
-def get_planning_prompt(ppt_content, chat_history, user_instruction):
-    prompt = plan_prompt.format(ppt_content, chat_history, user_instruction)
+def get_plan_prompt(instruction, slide_idx, selected_API, ppt_content, chat_history):
+    prompt = plan_prompt.format(instruction, slide_idx, selected_API, ppt_content)
+    # prompt += "\n\n" + chat_prompt.format("\n".join(chat_history), instruction)
+    return prompt
+
+def get_action_prompt(instruction, selected_API, slide_content):
+    prompt = action_prompt.format(instruction, selected_API, slide_content)
     return prompt

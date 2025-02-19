@@ -157,6 +157,7 @@ def eval(args):
         print(f"string acc: {string_correct}/{string_total}={string_acc}")
         print(f"position acc: {position_correct}/{position_total}={position_acc}")
 
+
     elif args.sess:
         for sess_id, session_path in enumerate(utils.sorted_list(args.user_path+f'PPT_test_output/{set_name}')):
             if not session_path.startswith(args.exp_name):
