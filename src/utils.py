@@ -4,6 +4,7 @@ from src import dataset
 from src import api_doc
 from sacremoses import MosesTokenizer
 from pptx.dml.color import RGBColor
+import win32com.client, pythoncom
 import tiktoken
 import json
 import re
@@ -367,3 +368,14 @@ insert_text('The Art of Young');
 set_font_underline();
 </code>"""
     parse_api(api_text)
+
+
+def render_slides(ppt_path="test.pptx", dst_dir="slide_previews", slide_indexes=[0]):
+    os.makedirs(dst_dir, exist_ok=True)
+    pythoncom.CoInitialize()
+    Application = win32com.client.Dispatch("PowerPoint.Application")
+    full_path = os.getcwd()
+    Presentation = Application.Presentations.Open(os.path.join(full_path, ppt_path), WithWindow=False)
+    for slide_idx in slide_indexes:
+        Presentation.Slides[slide_idx].Export(os.path.join(full_path, f"{dst_dir}/{slide_idx}.jpg"), "JPG")
+    Application.Quit()

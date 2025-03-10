@@ -228,7 +228,10 @@ class AutoShape(BasicShape):
         super().__init__(shape)
         self.text = shape.text_frame.text
         self.fill = get_fill_color(shape)
-        self.auto_shape_type = shape.auto_shape_type
+        try:
+            self.auto_shape_type = shape.auto_shape_type
+        except:
+            self.auto_shape_type = 19
     
     @property
     def text_info(self):
@@ -264,24 +267,22 @@ def get_content(need_text,need_style,need_position,need_title,need_content,need_
 
         for shape in slide.shapes:
             shape_type = shape.shape_type
-            try:
-                if 'PLACEHOLDER' in str(shape_type) and (need_title or need_content):
-                    shape = Placeholder(shape)
-                elif 'PICTURE' in str(shape_type) and need_picture:
-                    shape = Picture(shape,picture_idx)
-                    picture_idx += 1
-                elif 'CHART' in str(shape_type) and need_chart:
-                    shape = Chart(shape)
-                elif 'TABLE' in str(shape_type) and need_table:
-                    shape = Table(shape)
-                elif 'TEXT_BOX' in str(shape_type) and (need_textbox or (global_args.dataset=='long' and (need_title or need_content))):
-                    shape = Textbox(shape,textbox_idx)
-                    textbox_idx += 1
-                elif 'AUTO_SHAPE' in str(shape_type) and need_shape:
-                    shape = AutoShape(shape)
-                else:
-                    continue
-            except:
+
+            if 'PLACEHOLDER' in str(shape_type) and (need_title or need_content):
+                shape = Placeholder(shape)
+            elif 'PICTURE' in str(shape_type) and need_picture:
+                shape = Picture(shape,picture_idx)
+                picture_idx += 1
+            elif 'CHART' in str(shape_type) and need_chart:
+                shape = Chart(shape)
+            elif 'TABLE' in str(shape_type) and need_table:
+                shape = Table(shape)
+            elif 'TEXT_BOX' in str(shape_type) and (need_textbox or (global_args.dataset=='long' and (need_title or need_content))):
+                shape = Textbox(shape,textbox_idx)
+                textbox_idx += 1
+            elif 'AUTO_SHAPE' in str(shape_type) and need_shape:
+                shape = AutoShape(shape)
+            else:
                 continue
 
             s += shape.discription
@@ -342,24 +343,21 @@ def eval_get_contents(need_text=True, need_style=True, need_position=True, need_
         for shape in slide.shapes:
             if need_shape_list is not None and not hasshape(str(shape.shape_type), need_shape_list):
                 continue
-            try:
-                if 'PLACEHOLDER' in str(shape.shape_type):
-                    shape = Placeholder(shape)
-                elif 'PICTURE' in str(shape.shape_type):
-                    shape = Picture(shape,picture_idx)
-                    picture_idx += 1
-                elif 'CHART' in str(shape.shape_type):
-                    shape = Chart(shape)
-                elif 'TABLE' in str(shape.shape_type):
-                    shape = Table(shape)
-                elif 'TEXT_BOX' in str(shape.shape_type):
-                    shape = Textbox(shape,textbox_idx)
-                    textbox_idx += 1
-                elif 'AUTO_SHAPE' in str(shape.shape_type):
-                    shape = AutoShape(shape)
-                else:
-                    continue
-            except:
+            if 'PLACEHOLDER' in str(shape.shape_type):
+                shape = Placeholder(shape)
+            elif 'PICTURE' in str(shape.shape_type):
+                shape = Picture(shape,picture_idx)
+                picture_idx += 1
+            elif 'CHART' in str(shape.shape_type):
+                shape = Chart(shape)
+            elif 'TABLE' in str(shape.shape_type):
+                shape = Table(shape)
+            elif 'TEXT_BOX' in str(shape.shape_type):
+                shape = Textbox(shape,textbox_idx)
+                textbox_idx += 1
+            elif 'AUTO_SHAPE' in str(shape.shape_type):
+                shape = AutoShape(shape)
+            else:
                 continue
             s += shape.discription
             try:

@@ -69,7 +69,7 @@ def test(ppt_assistant, args):
             else:
                 ppt_assistant.load_ppt(args.user_path+base_ppt_path)
                 label_file = label_ppt_path
-                
+
             splitted_instruction = instruction.split("##")[0]
             print(splitted_instruction)
             if args.tf:

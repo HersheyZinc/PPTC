@@ -1,9 +1,9 @@
 
 from src import ppt_executor, ppt_reader, openai_api, prompt_factor, dataset, api_selection, utils, api_doc
-import re
+import re,os
 
 class PPT_assistant(object):
-    def __init__(self, args=None):
+    def __init__(self, args=None, slide_preview_dir='slide_previews'):
         self.chat_history = []
         self.args = args
         self.planning = args.planning
@@ -14,6 +14,8 @@ class PPT_assistant(object):
         self.ppt = None
         self.current_page_id = 0
         self.prompt = ""
+        self.slide_preview_dir = slide_preview_dir
+        os.makedirs(slide_preview_dir, exist_ok=True)
 
     def planner(self, instruction):
         if not self.planning:
@@ -81,6 +83,12 @@ class PPT_assistant(object):
         self.ppt = ppt_executor.get_ppt()
         self.chat_history = []
         return self.ppt
+    
+
+    def save_ppt(self, path):
+        self.ppt.save(path)
+        utils.render_slides(path, self.slide_preview_dir, slide_indexes=list(range(len(self.ppt.slides))))
+
 
     def chat(self, user_instruction, ppt_path=None, verbose=False):
         self.prompt = ""
@@ -141,7 +149,7 @@ class PPT_assistant(object):
             try:
 
                 reply = openai_api.query_azure_openai(prompt, model=self.model,id=self.model_id).strip()
-                # reply = openai_api.query_azure_openai(prompt, model="ft:gpt-4o-mini-2024-07-18:personal:test-instruct-only:AtnrHSqF",id=self.model_id).strip()
+                # reply = openai_api.query_azure_openai(prompt, model="ft:gpt-4o-mini-2024-07-18:personal:test2:AuWh9dWG",id=self.model_id).strip()
 
                 # print('#### Reply:')
                 # print(reply)

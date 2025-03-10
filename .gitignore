@@ -6,3 +6,4 @@ PPT_test_input
 PPT_test_output
 *.pyc
 .env
+error.txt
