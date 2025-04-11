@@ -56,21 +56,22 @@ def test(ppt_assistant, args):
             if args.resume:
 
                 if args.tf and os.path.exists(args.user_path+f'PPT_Pred_File/{set_name}/{args.exp_name}_{sess_id}_{turn_id}.pptx'):
-
                     print('Exists!')
                     continue 
                 if args.sess and os.path.exists(args.user_path+f'PPT_Pred_File/{set_name}/{args.exp_name}_{sess_id}_{len(session)-1}.pptx'):
                     print('Exists!')
                     continue 
             turn_id, instruction, label_api, base_ppt_path, label_ppt_path, api_lack_base_ppt_path, api_lack_label_ppt_path = turn
-            if turn_id == 0 and args.sess:
-                if args.api_lack:
-                    ppt_assistant.load_ppt(args.user_path+api_lack_base_ppt_path)
-                    label_file = api_lack_label_ppt_path
-                else:
-                    ppt_assistant.load_ppt(args.user_path+base_ppt_path)
-                    label_file = label_ppt_path
+
+            if args.api_lack:
+                ppt_assistant.load_ppt(args.user_path+api_lack_base_ppt_path)
+                label_file = api_lack_label_ppt_path
+            else:
+                ppt_assistant.load_ppt(args.user_path+base_ppt_path)
+                label_file = label_ppt_path
+
             splitted_instruction = instruction.split("##")[0]
+
             if args.tf:
                 if args.api_lack:
                     ppt_assistant.load_ppt(args.user_path+api_lack_base_ppt_path)
